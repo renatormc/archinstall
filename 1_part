@@ -1,0 +1,30 @@
+#!/bin/bash
+
+swap_size=4096
+efi_size=500
+mydev=/dev/vda
+
+# Calculate the remaining size for the ext4 partition
+total_size=$(blockdev --getsz $mydev)
+used_size=$((swap_size + efi_size))
+ext4_size=$((total_size - used_size))
+
+# Partitioning the Disk
+printf "Partitioning $mydev...\n"
+parted $mydev mklabel gpt
+
+# Create the swap partition
+printf "Creating swap partition...\n"
+parted $mydev mkpart primary linux-swap 1MiB ${swap_size}MiB
+parted $mydev set 1 swap on
+
+# Create the EFI partition
+printf "Creating EFI partition...\n"
+parted $mydev mkpart ESP fat32 ${swap_size}MiB $((swap_size + efi_size))MiB
+parted $mydev set 2 boot on
+
+# Create the ext4 partition
+printf "Creating ext4 partition...\n"
+parted $mydev mkpart primary ext4 $((swap_size + efi_size + 1))MiB 100%
+
+printf "Partitioning complete.\n"
