@@ -13,3 +13,5 @@ mount $efi_partition /mnt/boot/efi &&
 pacstrap /mnt base base-devel linux linux-firmware nano bash-completion &&
 genfstab -U -p /mnt >> /mnt/etc/fstab &&
 cp -r . /mnt/archinstall
+
+echo "Before next step run arch-chroot /mnt"
