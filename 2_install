@@ -1,7 +1,7 @@
 #!/bin/bash
-read -p "Swap partition: " swap_partition
-read -p "Efi partition: " efi_partition
-read -p "Ext4 partition: " ext4_partition
+swap_partition=/dev/sda2
+efi_partition=/dev/sda1
+ext4_partition=/dev/sda3
 
 
 mkfs.ext4 $ext4_partition &&
