@@ -3,7 +3,7 @@
 myenv=kde
 nvidia=true
 
-pacman -S xorg firefox vlc
+pacman -S xorg
 if [ nvidia ]; then
     pacman -S nvidia nvidia-libgl mesa
 fi
