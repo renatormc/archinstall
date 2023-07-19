@@ -14,7 +14,8 @@ case "$myenv" in
         systemctl enable sddm
         ;;
     gnome)
-        echo "gnome"
+        pacman -S gnome gnome-terminal firefox gdm
+        systemctl enable gdm
         ;;
     *)
         echo "not found"
