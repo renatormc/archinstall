@@ -10,7 +10,7 @@ fi
 
 case "$myenv" in
     kde)
-        pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt firefox kate gwenview
+        pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt
         systemctl enable sddm
         ;;
     gnome)

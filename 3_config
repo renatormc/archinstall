@@ -3,7 +3,7 @@
 myhostname="deskoffice"
 myuser="renato"
 
-
+sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
 ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 hwclock --systohc
 mypath=/etc/locale.gen
@@ -21,7 +21,8 @@ echo "127.0.1.1     $myhostname.localdomain    $myhostname " >> /etc/hosts
 
 echo "Define root password"
 passwd
-useradd -m -g users -G wheel $myuser
+groupadd renato
+useradd -m -g renato $myuser
 echo "Define password for $myuser"
 passwd $myuser
 

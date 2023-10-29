@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt
+systemctl enable sddm
+#pacman -Rs gnome gnome-terminal gdm
+   
