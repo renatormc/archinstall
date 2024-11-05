@@ -45,7 +45,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 pacman -S xorg --needed --noconfirm
 if [ nvidia ]; then
-    pacman -S nvidia nvidia-libgl mesa
+    pacman -S nvidia nvidia-libgl mesa -needed --noconfirm
 fi
 
 case "$myenv" in
@@ -62,7 +62,7 @@ case "$myenv" in
         ;;
 esac
 
-pacman -S --needed --noconfirm base-devel git  go zip unzip flameshot freerdp zerotier-one docker docker-compose rclone recoll libreoffice-still libreoffice-still-pt-br postgresql-libs python-pip openssl zlib xz tk flatpak vlc obs-studio openssh ufw --noconfirm && \
+pacman -S --needed --noconfirm base-devel git clang go zip unzip flameshot freerdp zerotier-one docker docker-compose rclone recoll libreoffice-still libreoffice-still-pt-br postgresql-libs python-pip openssl zlib xz tk flatpak vlc obs-studio openssh ufw --noconfirm && \
 systemctl enable docker.service --now
 usermod -aG docker renato
 systemctl enable zerotier-one.service --now
