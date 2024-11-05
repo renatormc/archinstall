@@ -1,7 +1,9 @@
 #!/bin/bash
 
-myhostname="deskoffice"
+myhostname="rmcol"
 myuser="renato"
+myenv=gnome
+nvidia=true
 
 sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
 ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
@@ -26,7 +28,56 @@ useradd -m -g renato $myuser
 echo "Define password for $myuser"
 passwd $myuser
 
-pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo git go ntfs-3g
+pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo git go ntfs-3g --needed --noconfirm
 echo "$myuser ALL=(ALL) ALL" >> /etc/sudoers
 systemctl enable NetworkManager
+
+pacman -S kdeconnect amd-ucode pipewire-pulse --needed --noconfirm
+
+pacman -S grub-efi-x86_64 efibootmgr --needed --noconfirm
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck
+cp /usr/share/locale/en@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+mypath=/etc/default/grub
+sed -i "s/#\?\(GRUB_DISABLE_OS_PROBER=false\)/\1/" "$mypath"
+grub-mkconfig -o /boot/grub/grub.cfg
+
+
+
+pacman -S xorg --needed --noconfirm
+if [ nvidia ]; then
+    pacman -S nvidia nvidia-libgl mesa
+fi
+
+case "$myenv" in
+    kde)
+        pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt firefox kate gwenview --needed --noconfirm
+        systemctl enable sddm
+        ;;
+    gnome)
+        pacman -S gnome gnome-terminal firefox gdm --needed --noconfirm
+        systemctl enable gdm
+        ;;
+    *)
+        echo "not found"
+        ;;
+esac
+
+pacman -S --needed --noconfirm base-devel git  go zip unzip flameshot freerdp zerotier-one docker docker-compose rclone recoll libreoffice-still libreoffice-still-pt-br postgresql-libs python-pip openssl zlib xz tk flatpak vlc obs-studio openssh ufw --noconfirm && \
+systemctl enable docker.service --now
+usermod -aG docker renato
+systemctl enable zerotier-one.service --now
+systemctl enable sshd --now
+ufw allow ssh
+
+pacman -S --needed --noconfirm qemu virt-manager virt-viewer dnsmasq vde2 bridge-utils openbsd-netcat edk2-ovmf swtpm  &&
+pacman -S --needed --noconfirm qemu-ui-spice-core qemu-ui-spice-app qemu-hw-usb-redirect qemu-audio-spice qemu-hw-display-qxl &&
+pacman -S --needed  ebtables iptables
+systemctl enable libvirtd.service &&
+systemctl start libvirtd.service
+mypath=/etc/libvirt/libvirtd.conf
+sed -i "s/#\?\(unix_sock_group\)/\1/" "$mypath"
+sed -i "s/#\?\(unix_sock_rw_perms\)/\1/" "$mypath"
+usermod -a -G libvirt renato
+newgrp libvirt 
+systemctl restart libvirtd.service 
 

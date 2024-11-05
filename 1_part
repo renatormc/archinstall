@@ -1,8 +1,8 @@
 #!/bin/bash
 
 swap_size=4096
-efi_size=500
-mydev=/dev/vda
+efi_size=1024
+mydev=/dev/sdc
 
 # Calculate the remaining size for the ext4 partition
 total_size=$(blockdev --getsz $mydev)
