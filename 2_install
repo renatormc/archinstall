@@ -6,6 +6,13 @@ ext4_partition=/dev/sdc3
 sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
 mkfs.btrfs -f $ext4_partition &&
 mkfs.fat -F 32 $efi_partition &&
+btrfs subvolume create /mnt/@
+btrfs subvolume create /mnt/@home
+umount /mnt
+mount -o compress=zstd,subvol=@ $ext4_partition /mnt
+mkdir /mnt/home
+mount -o compress=zstd,subvol=@home $ext4_partition /mnt/home
+
 mkswap $swap_partition &&
 mount $ext4_partition /mnt &&
 mkdir /mnt/boot/efi -p &&

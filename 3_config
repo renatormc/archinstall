@@ -69,7 +69,7 @@ systemctl enable zerotier-one.service --now
 systemctl enable sshd --now
 ufw allow ssh
 
-pacman -S --needed --noconfirm qemu virt-manager virt-viewer dnsmasq vde2 bridge-utils openbsd-netcat edk2-ovmf swtpm  &&
+pacman -S --needed --noconfirm qemu virt-manager virt-viewer dnsmasq vde2 bridge-utils openbsd-netcat edk2-ovmf swtpm qemu-hw-usb-host usbutils &&
 pacman -S --needed --noconfirm qemu-ui-spice-core qemu-ui-spice-app qemu-hw-usb-redirect qemu-audio-spice qemu-hw-display-qxl &&
 pacman -S --needed  ebtables iptables
 systemctl enable libvirtd.service &&
