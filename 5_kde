@@ -1,0 +1,5 @@
+#!/bin/bash
+pacman -S xorg nvidia nvidia-libgl mesa --needed --noconfirm
+pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt firefox kate gwenview --needed --noconfirm
+systemctl enable sddm
+

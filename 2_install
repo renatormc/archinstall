@@ -1,6 +1,6 @@
 #!/bin/bash
-swap_partition=/dev/sdc2
-efi_partition=/dev/sdc1
+swap_partition=/dev/sdc1
+efi_partition=/dev/sdc2
 ext4_partition=/dev/sdc3
 
 sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
@@ -15,8 +15,8 @@ mount -o compress=zstd,subvol=@home $ext4_partition /mnt/home
 
 mkswap $swap_partition &&
 mount $ext4_partition /mnt &&
-mkdir /mnt/boot -p &&
-mount $efi_partition /mnt/boot &&
+mkdir /mnt/boot/efi -p &&
+mount $efi_partition /mnt/boot/efi &&
 pacstrap /mnt base base-devel linux linux-firmware nano bash-completion &&
 genfstab -U -p /mnt >> /mnt/etc/fstab &&
 cp -r . /mnt/archinstall

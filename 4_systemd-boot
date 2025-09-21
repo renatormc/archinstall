@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#systemd-boot
+pacman -Syu systemd efibootmgr --needed --noconfirm
+bootctl install
+ROOT_UUID=$(blkid -s UUID -o value $(findmnt / -o SOURCE -n))
+mkdir -p /boot/loader/entries
+cat > /boot/loader/loader.conf <<EOF
+default arch
+timeout 3
+console-mode max
+editor no
+EOF
+cat > /boot/loader/entries/arch.conf <<EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=${ROOT_UUID} rw
+EOF
+

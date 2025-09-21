@@ -1,3 +1,0 @@
-#!/bin/bash
-./3_config && ./4_grub && ./5_gui
-

@@ -1,0 +1,33 @@
+#!/bin/bash
+myhostname="rmcol"
+myuser="renato"
+mtype=amd
+
+sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
+ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+hwclock --systohc
+mypath=/etc/locale.gen
+sed -i "s/#\?\(en_US.UTF-8 UTF-8\)/\1/" "$mypath"
+sed -i "s/#\?\(pt_BR.UTF-8 UTF-8\)/\1/" "$mypath"
+locale-gen
+echo LANG=en_US.UTF-8 >> /etc/locale.conf
+echo KEYMAP=br-abnt2 >> /etc/vconsole.conf
+echo $myhostname >> /etc/hostname
+
+echo "127.0.0.1      localhost.localdomain            localhost" >> /etc/hosts
+echo "::1               localhost.localdomain            localhost" >> /etc/hosts
+echo "127.0.1.1     $myhostname.localdomain    $myhostname " >> /etc/hosts
+
+
+echo "Define root password"
+passwd
+groupadd renato
+useradd -m -g renato $myuser
+echo "Define password for $myuser"
+passwd $myuser
+
+pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo git go ntfs-3g --needed --noconfirm
+echo "$myuser ALL=(ALL) ALL" >> /etc/sudoers
+systemctl enable NetworkManager
+
+pacman -S $mtype-ucode pipewire-pulse --needed --noconfirm
