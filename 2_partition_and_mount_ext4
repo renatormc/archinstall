@@ -1,0 +1,19 @@
+#!/bin/bash
+swap_partition=/dev/sdc1
+efi_partition=/dev/sdc2
+ext4_partition=/dev/sdc3
+efi_mount=/mnt/boot/efi
+
+mkfs.ext4 $ext4_partition &&
+mkfs.fat -F 32 $efi_partition &&
+mkswap $swap_partition &&
+mount $ext4_partition /mnt &&
+mkdir $efi_mount -p &&
+mount $efi_partition $efi_mount
+
+#btrfs subvolume create /mnt/@
+#btrfs subvolume create /mnt/@home
+#umount /mnt
+#mount -o compress=zstd,subvol=@ $ext4_partition /mnt
+#mkdir /mnt/home
+#mount -o compress=zstd,subvol=@home $ext4_partition /mnt/home
