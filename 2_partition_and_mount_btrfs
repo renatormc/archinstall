@@ -1,15 +1,34 @@
 #!/bin/bash
+set -euo pipefail
+
 swap_partition=/dev/sdc1
 efi_partition=/dev/sdc2
-ext4_partition=/dev/sdc3
+btrfs_partition=/dev/sdc3
 efi_mount=/mnt/boot/efi
 
+# Mount the raw Btrfs partition temporarily to create subvolumes
+mount -t btrfs $btrfs_partition /mnt
+
+# Create subvolumes
 btrfs subvolume create /mnt/@
 btrfs subvolume create /mnt/@home
+
+# Unmount the temporary mount
 umount /mnt
-mount -o compress=zstd,subvol=@ $ext4_partition /mnt
-mkdir /mnt/home
-mount -o compress=zstd,subvol=@home $ext4_partition /mnt/home &&
-mkdir $efi_mount -p &&
+
+# Mount the @ subvolume as root
+mount -o noatime,compress=zstd,subvol=@ $btrfs_partition /mnt
+
+# Mount @home
+mkdir -p /mnt/home
+mount -o noatime,compress=zstd,subvol=@home $btrfs_partition /mnt/home
+
+# Mount EFI
+mkdir -p $efi_mount
 mount $efi_partition $efi_mount
+
+# (optional) Enable swap
+# swapon $swap_partition
+
+echo "Btrfs subvolumes and EFI mounted successfully!"
 

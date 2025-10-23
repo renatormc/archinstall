@@ -1,5 +1,5 @@
 #!/bin/bash
-pacman -S --needed --noconfirm base-devel git clang zip unzip flameshot freerdp docker docker-compose rclone libreoffice-fresh libreoffice-fresh-pt-br postgresql-libs python-pip openssl zlib xz tk flatpak vlc obs-studio openssh ufw --noconfirm && \
+pacman -S --needed --noconfirm base-devel git clang zip unzip flameshot freerdp docker docker-compose rclone libreoffice-fresh libreoffice-fresh-pt-br postgresql-libs python-pip openssl xz tk flatpak vlc obs-studio openssh ufw --noconfirm && \
 pacman -S --needed --noconfirm kdeconnect
 systemctl enable docker.service --now
 usermod -aG docker renato
