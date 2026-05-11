@@ -1,0 +1,135 @@
+#!/bin/bash
+source ./vars.sh
+set -euo pipefail
+
+# --- Auto-discovery de partições baseado em R_DISK e tipo de filesystem ---
+echo "=== Descobrindo partições em $R_DISK ==="
+
+find_partition_by_fs() {
+    local target_fs="$1"
+    lsblk -ln -o PATH,FSTYPE "$R_DISK" 2>/dev/null | awk -v fs="$target_fs" '$2 == fs {print $1; exit}'
+}
+
+swap_partition=$(find_partition_by_fs "swap")
+efi_partition=$(find_partition_by_fs "vfat")
+if [ "$R_ROOT_PARTITION_FORMAT" = "btrfs" ]; then
+    root_partition=$(find_partition_by_fs "btrfs")
+elif [ "$R_ROOT_PARTITION_FORMAT" = "ext4" ]; then
+    root_partition=$(find_partition_by_fs "ext4")
+fi
+
+
+# Fallback: se não encontrar pelo filesystem, usa a ordem padrão (1=swap, 2=efi, 3=root)
+if [ -z "$swap_partition" ]; then
+    swap_partition="${R_DISK}1"
+    echo "AVISO: Partição swap não detectada por filesystem, usando $swap_partition"
+fi
+if [ -z "$efi_partition" ]; then
+    efi_partition="${R_DISK}2"
+    echo "AVISO: Partição EFI não detectada por filesystem, usando $efi_partition"
+fi
+if [ -z "$root_partition" ]; then
+    root_partition="${R_DISK}3"
+    echo "AVISO: Partição root não detectada por filesystem, usando $root_partition"
+fi
+
+echo "Swap:  $swap_partition"
+echo "EFI:   $efi_partition"
+echo "Root:  $root_partition"
+echo ""
+
+# Define EFI mount point based on bootloader
+if [ "$R_BOOTLOADER" = "systemd" ]; then
+    efi_mount=/mnt/boot
+elif [ "$R_BOOTLOADER" = "grub" ]; then
+    efi_mount=/mnt/boot/efi
+else
+    echo "ERRO: R_BOOTLOADER não definido ou inválido. Use 'systemd' ou 'grub'"
+    exit 1
+fi
+
+# --- Verificação de segurança ---
+echo "=== Verificação de Partições ==="
+echo "FS:    $R_ROOT_PARTITION_FORMAT"
+echo ""
+
+for dev in "$swap_partition" "$efi_partition" "$root_partition"; do
+    if [ ! -b "$dev" ]; then
+        echo "ERRO: Dispositivo $dev não existe!"
+        exit 1
+    fi
+done
+
+read -p "AVISO: Isso irá FORMATAR e APAGAR todos os dados nestas partições! Continuar? (digite 'SIM' em maiúsculas): " confirm
+if [ "$confirm" != "SIM" ]; then
+    echo "Operação cancelada."
+    exit 0
+fi
+
+# --- Limpa as partições ---
+echo "Limpando partições..."
+wipefs -a "$swap_partition"
+wipefs -a "$efi_partition"
+wipefs -a "$root_partition"
+
+# --- Formatação ---
+echo "Formatando partições..."
+mkfs.fat -F 32 -n EFI "$efi_partition"
+mkswap -L swap "$swap_partition"
+
+if [ "$R_ROOT_PARTITION_FORMAT" = "btrfs" ]; then
+    echo "Formatando como Btrfs..."
+    mkfs.btrfs -f -L rootfs "$root_partition"
+
+    echo "Criando subvolumes Btrfs..."
+    mount "$root_partition" /mnt
+    btrfs subvolume create /mnt/@
+    btrfs subvolume create /mnt/@home
+    btrfs subvolume create /mnt/@snapshots
+    btrfs subvolume create /mnt/@log
+    umount /mnt
+
+    opts="noatime,compress=zstd:3,ssd,space_cache=v2,discard=async"
+
+    echo "Montando subvolumes..."
+    mount -o $opts,subvol=@ "$root_partition" /mnt
+
+    mkdir -p /mnt/home
+    mount -o $opts,subvol=@home "$root_partition" /mnt/home
+
+    mkdir -p /mnt/.snapshots
+    mount -o $opts,subvol=@snapshots "$root_partition" /mnt/.snapshots
+
+    mkdir -p /mnt/var/log
+    mount -o $opts,subvol=@log "$root_partition" /mnt/var/log
+
+    echo "=== Btrfs layout criado e partições montadas com sucesso! ==="
+    echo "Estrutura de montagem:"
+    echo "  /mnt          -> @ (root)"
+    echo "  /mnt/home     -> @home"
+    echo "  /mnt/.snapshots -> @snapshots"
+    echo "  /mnt/var/log  -> @log"
+
+elif [ "$R_ROOT_PARTITION_FORMAT" = "ext4" ]; then
+    echo "Formatando como ext4..."
+    mkfs.ext4 -L rootfs "$root_partition"
+
+    echo "Montando partição ext4..."
+    mount "$root_partition" /mnt
+
+    echo "=== Partição ext4 formatada e montada com sucesso! ==="
+else
+    echo "ERRO: Formato de filesystem inválido: $R_ROOT_PARTITION_FORMAT (use 'btrfs' ou 'ext4')"
+    exit 1
+fi
+
+# --- EFI (para systemd-boot, deve ser /boot) ---
+mkdir -p "$efi_mount"
+mount "$efi_partition" "$efi_mount"
+
+# --- Swap ---
+echo "Ativando swap..."
+swapon "$swap_partition"
+
+echo "  $efi_mount     -> EFI System Partition"
+echo "  swap ativo    -> $swap_partition"

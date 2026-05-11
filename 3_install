@@ -1,5 +1,5 @@
 #!/bin/bash
-sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
+set -e
 pacstrap /mnt base base-devel linux linux-firmware nano bash-completion &&
-genfstab -U -p /mnt >> /mnt/etc/fstab &&
+genfstab -U /mnt >> /mnt/etc/fstab &&
 cp -r . /mnt/archinstall

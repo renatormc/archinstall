@@ -1,6 +1,0 @@
-#!/bin/bash
-pacman -S xorg nvidia nvidia-libgl mesa --needed --noconfirm
-pacman -S gnome gnome-terminal firefox gdm --needed --noconfirm
-systemctl enable gdm
-
-

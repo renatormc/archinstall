@@ -1,7 +1,6 @@
 #!/bin/bash
-myhostname="rmcol"
-myuser="renato"
-mtype=amd
+set -e
+source ./vars.sh
 
 sed -i 's/^#\(ParallelDownloads = 5\)/\1/' /etc/pacman.conf &&
 ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
@@ -12,22 +11,21 @@ sed -i "s/#\?\(pt_BR.UTF-8 UTF-8\)/\1/" "$mypath"
 locale-gen
 echo LANG=en_US.UTF-8 >> /etc/locale.conf
 echo KEYMAP=br-abnt2 >> /etc/vconsole.conf
-echo $myhostname >> /etc/hostname
+echo $R_HOSTNAME >> /etc/hostname
 
 echo "127.0.0.1      localhost.localdomain            localhost" >> /etc/hosts
 echo "::1               localhost.localdomain            localhost" >> /etc/hosts
-echo "127.0.1.1     $myhostname.localdomain    $myhostname " >> /etc/hosts
+echo "127.0.1.1     $R_HOSTNAME.localdomain    $R_HOSTNAME " >> /etc/hosts
 
 
 echo "Define root password"
 passwd
-groupadd renato
-useradd -m -g renato $myuser
-echo "Define password for $myuser"
-passwd $myuser
+useradd -m $R_USERNAME
+echo "Define password for $R_USERNAME"
+passwd $R_USERNAME
 
 pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo git go ntfs-3g --needed --noconfirm
-echo "$myuser ALL=(ALL) ALL" >> /etc/sudoers
+echo "$R_USERNAME ALL=(ALL) ALL" > /etc/sudoers.d/$R_USERNAME
 systemctl enable NetworkManager
 
-pacman -S $mtype-ucode pipewire-pulse --needed --noconfirm
+pacman -S $R_CPU-ucode pipewire-pulse --needed --noconfirm

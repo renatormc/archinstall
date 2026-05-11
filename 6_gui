@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+source ./vars.sh
+
+# Install common graphics drivers
+pacman -S xorg nvidia nvidia-libgl mesa --needed --noconfirm
+
+if [ "$R_GUI" = "gnome" ]; then
+    echo "Installing GNOME..."
+    pacman -S gnome gnome-terminal firefox gdm --needed --noconfirm
+    systemctl enable gdm
+elif [ "$R_GUI" = "kde" ]; then
+    echo "Installing KDE Plasma..."
+    pacman -S sddm plasma konsole dolphin ark okular partitionmanager transmission-qt firefox kate gwenview --needed --noconfirm
+    systemctl enable sddm
+else
+    echo "ERROR: Invalid R_GUI value: $R_GUI (use 'gnome' or 'kde')"
+    exit 1
+fi

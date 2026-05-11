@@ -1,0 +1,2 @@
+#!/bin/bash
+./3_install && ./4_base && ./5_bootloader && ./6_gui && ./7_common_apps
