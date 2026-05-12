@@ -7,7 +7,7 @@ echo "=== Descobrindo partições em $R_DISK ==="
 
 find_partition_by_fs() {
     local target_fs="$1"
-    lsblk -ln -o PATH,FSTYPE "$R_DISK" 2>/dev/null | awk -v fs="$target_fs" '$2 == fs {print $1; exit}'
+    lsblk -ln -p -o NAME,FSTYPE "$R_DISK" 2>/dev/null | awk -v fs="$target_fs" '$2 == fs {print $1; exit}'
 }
 
 swap_partition=$(find_partition_by_fs "swap")
@@ -19,17 +19,26 @@ elif [ "$R_ROOT_PARTITION_FORMAT" = "ext4" ]; then
 fi
 
 
-# Fallback: se não encontrar pelo filesystem, usa a ordem padrão (1=swap, 2=efi, 3=root)
+# Fallback: detecta se o dispositivo usa nomenclatura NVMe (p1, p2...) ou SD (1, 2...)
+partition_suffix() {
+    local disk="$1"
+    if echo "$disk" | grep -qP '/dev/nvme\d+n\d+$'; then
+        echo "p"
+    else
+        echo ""
+    fi
+}
+
 if [ -z "$swap_partition" ]; then
-    swap_partition="${R_DISK}1"
+    swap_partition="${R_DISK}$(partition_suffix "$R_DISK")1"
     echo "AVISO: Partição swap não detectada por filesystem, usando $swap_partition"
 fi
 if [ -z "$efi_partition" ]; then
-    efi_partition="${R_DISK}2"
+    efi_partition="${R_DISK}$(partition_suffix "$R_DISK")2"
     echo "AVISO: Partição EFI não detectada por filesystem, usando $efi_partition"
 fi
 if [ -z "$root_partition" ]; then
-    root_partition="${R_DISK}3"
+    root_partition="${R_DISK}$(partition_suffix "$R_DISK")3"
     echo "AVISO: Partição root não detectada por filesystem, usando $root_partition"
 fi
 
