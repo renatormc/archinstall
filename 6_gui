@@ -2,8 +2,6 @@
 set -e
 source ./vars.sh
 
-# Install common graphics drivers
-pacman -S xorg nvidia nvidia-libgl mesa --needed --noconfirm
 
 if [ "$R_GUI" = "gnome" ]; then
     echo "Installing GNOME..."
