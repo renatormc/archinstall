@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+mypath=/etc/locale.gen
+sed -i "s/#\?\(en_US.UTF-8 UTF-8\)/\1/" "$mypath"
+sed -i "s/#\?\(pt_BR.UTF-8 UTF-8\)/\1/" "$mypath"
+locale-gen
+
+pacman -S --needed --noconfirm base-devel git clang zip unzip flameshot freerdp docker docker-compose rclone libreoffice-fresh libreoffice-fresh-pt-br postgresql-libs python-pip openssl xz tk flatpak vlc obs-studio openssh ufw bitwarden tesseract tesseract-data-por dbeaver linux-headers zerotier-one dolphin konsole ark okular partitionmanager bash-completion gwenview kate--noconfirm && \
+pacman -S --needed --noconfirm kdeconnect
+systemctl enable docker.service --now
+usermod -aG docker $R_USERNAME
+systemctl enable zerotier-one.service --now
+systemctl enable sshd --now
+ufw allow ssh
+
+pacman -S --needed --noconfirm qemu virt-manager virt-viewer dnsmasq vde2 openbsd-netcat edk2-ovmf swtpm qemu-hw-usb-host usbutils &&
+pacman -S --needed --noconfirm qemu-ui-spice-core qemu-ui-spice-app qemu-hw-usb-redirect qemu-audio-spice qemu-hw-display-qxl &&
+pacman -S --needed  ebtables iptables
+systemctl enable libvirtd.service &&
+systemctl start libvirtd.service
+mypath=/etc/libvirt/libvirtd.conf
+sed -i "s/#\?\(unix_sock_group\)/\1/" "$mypath"
+sed -i "s/#\?\(unix_sock_rw_perms\)/\1/" "$mypath"
+usermod -a -G libvirt $R_USERNAME
+systemctl restart libvirtd.service 
+
+# Install yay from AUR
+echo "Installing yay from AUR..."
+cd /tmp
+git clone https://aur.archlinux.org/yay.git
+chown -R $R_USERNAME: yay
+cd yay
+sudo -u $R_USERNAME makepkg -s --noconfirm
+pacman -U *.pkg.tar.zst --noconfirm
+cd ..
+rm -rf yay
+
+# Install google-chrome
+echo "Installing google-chrome..."
+sudo -u $R_USERNAME yay -S --noconfirm visual-studio-code-bin google-chrome asdf-vm
+
